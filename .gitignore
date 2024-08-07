@@ -1,3 +1,6 @@
 .env
 text_example.py
 __pycache__/
+questions.txt
+proper_answers.txt
+poor_answers.txt
