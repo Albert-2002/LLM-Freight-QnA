@@ -1,5 +1,5 @@
-from dotenv import load_dotenv, find_dotenv
 from langchain_huggingface import HuggingFaceEndpoint
+from langchain_openai import OpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
@@ -9,8 +9,10 @@ class Questioner():
 
     def __init__(self, HUGGINGFACEHUB_API_TOKEN: str | None = None) -> None:
         # if HUGGINGFACEHUB_API_TOKEN is None, then it will look the enviroment variable HUGGINGFACEHUB_API_TOKEN
+        # OPENAI_API_KEY
 
         self.llm = HuggingFaceEndpoint(repo_id='mistralai/Mistral-7B-Instruct-v0.2')
+        # self.llm = OpenAI(model="gpt-3.5-turbo-instruct")
         #meta-llama/Meta-Llama-3-8B-Instruct
         #mistralai/Mistral-7B-Instruct-v0.2
 
@@ -71,5 +73,14 @@ class Questioner():
             "existing_questions": existing_questions_str
         }
         response = self.chain.invoke(input_data)
-        questions = [line.replace('- ', '').strip() for line in response.strip().split("\n") if '-' in line]
-        return questions
+        lines = response.strip().split("\n")
+
+        suggested_questions = [
+            line.replace('- ', '').strip()
+            for line in lines
+            if '-' in line and not line.startswith(('AI:', 'Suggested:', 'Examples:', 'Input:', 'Output:'))]
+
+        return {
+            "existing_questions": existing_questions,
+            "suggested_questions": suggested_questions
+        }

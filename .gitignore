@@ -2,5 +2,6 @@
 text_example.py
 __pycache__/
 questions.txt
-proper_answers.txt
-poor_answers.txt
+questions_and_proper_answers.txt
+questions_and_poor_answers.txt
+test_field.py

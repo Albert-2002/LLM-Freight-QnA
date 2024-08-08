@@ -1,39 +1,39 @@
 from langchain_huggingface import HuggingFaceEndpoint
+from langchain_openai import OpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-class Answerer:
+class Answerer():
 
     def __init__(self, HUGGINGFACEHUB_API_TOKEN: str | None = None) -> None:
+        #HUGGINGFACEHUB_API_TOKEN
+        #OPENAI_API_KEY
 
         self.llm = HuggingFaceEndpoint(repo_id="mistralai/Mistral-7B-Instruct-v0.2")
+        # self.llm = OpenAI(model="gpt-3.5-turbo-instruct")
 
         self.prompt_proper = ChatPromptTemplate.from_messages([
-            ("system", """You are an AI assistant for providing proper answers to vendor questions in the context of freight procurement. Provide detailed, relevant, and accurate answers based on industry best practices and common knowledge.
+            ("system", """You are an AI assistant for providing proper answers to vendor questions in the context of freight procurement. Provide a direct, detailed, and accurate answer to the given question based on industry best practices and common knowledge. Start every answer with "Proper Answer: ...". Do not include any explanations or additional text.
 
-            Examples:
+            Example:
             Question: What is your experience with FCL shipments?
-            Proper Answer: We have over 15 years of experience handling Full Container Load (FCL) shipments. Our team is well-versed in managing large-scale logistics operations, ensuring timely delivery and maintaining the integrity of the goods. We work with a network of reliable carriers and use advanced tracking systems to monitor shipments from origin to destination.
+            Proper Answer: "We have over 15 years of experience handling Full Container Load (FCL) shipments, completing more than 1,000 successful deliveries annually. Our team is certified in international logistics management, and we leverage a network of over 50 reliable carriers. Our advanced tracking systems provide real-time updates and have reduced delays by 20% over the past five years."
 
             Question: How do you ensure the safety and security of FCL shipments?
-            Proper Answer: We implement stringent safety and security measures for FCL shipments. Our protocols include secure packaging, tamper-evident seals, real-time GPS tracking, and compliance with international shipping regulations. Additionally, we conduct regular audits and training sessions to keep our staff updated on the latest security practices.
-
-            Do not include any explanations or additional text in your response.
+            Proper Answer: "We implement stringent safety and security measures for FCL shipments, including ISO 28000 certification for supply chain security management. Our protocols feature secure packaging, tamper-evident seals, 24/7 real-time GPS tracking, and compliance with international shipping regulations. Regular audits and quarterly training sessions ensure our staff are proficient in the latest security practices. Our incident rate is below 0.5%, demonstrating our commitment to safety."
             """),
             ("human", "{input}")
         ])
 
         self.prompt_poor = ChatPromptTemplate.from_messages([
-            ("system", """You are an AI assistant for providing poor answers to vendor questions in the context of freight procurement. Provide vague, irrelevant, or inaccurate answers that do not inspire confidence in the vendor's capabilities.
+            ("system", """You are an AI assistant for providing poor answers to vendor questions in the context of freight procurement. Provide a direct answer to the given question that shows some effort but lacks detail, specificity, and confidence. Start every answer with "Poor Answer: ...". Do not include any explanations or additional text.
 
-            Examples:
+            Example:
             Question: What is your experience with FCL shipments?
-            Poor Answer: We have done some FCL shipments in the past. Not too many problems usually. It depends on the situation, but we try to do our best.
+            Poor Answer: "We have handled FCL shipments for a few years now. Our team is generally experienced, and we have a number of successful shipments. We work with several carriers and use tracking systems."
 
             Question: How do you ensure the safety and security of FCL shipments?
-            Poor Answer: We usually make sure things are safe. Our staff is trained, and we try to follow the rules most of the time. Sometimes things go wrong, but we handle it.
-
-            Do not include any explanations or additional text in your response.
+            Poor Answer: "We try to ensure the safety and security of our shipments by following standard procedures. We use basic packaging materials and have some tracking in place. Our staff is trained, and we follow most of the shipping regulations."
             """),
             ("human", "{input}")
         ])
@@ -45,8 +45,8 @@ class Answerer:
 
     def provide_proper_answer(self, question):
         response = self.chain_proper.invoke({"input": question})
-        return response.strip()
+        return response.strip().replace("Human:", "").strip()
 
     def provide_poor_answer(self, question):
         response = self.chain_poor.invoke({"input": question})
-        return response.strip()
+        return response.strip().replace("Human:", "").strip()
