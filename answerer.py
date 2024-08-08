@@ -9,13 +9,13 @@ class Answerer():
         #HUGGINGFACEHUB_API_TOKEN
         #OPENAI_API_KEY
 
-        self.llm = HuggingFaceEndpoint(repo_id="mistralai/Mistral-7B-Instruct-v0.2")
+        self.llm = HuggingFaceEndpoint(repo_id="mistralai/Mistral-7B-Instruct-v0.2", temperature=0.3, top_p=0.9)
         # self.llm = OpenAI(model="gpt-3.5-turbo-instruct")
 
         self.prompt_proper = ChatPromptTemplate.from_messages([
-            ("system", """You are an AI assistant for providing proper answers to vendor questions in the context of freight procurement. Provide a direct, detailed, and accurate answer to the given question based on industry best practices and common knowledge. Start every answer with "Proper Answer: ...". Do not include any explanations or additional text.
+            ("system", """You are an AI assistant for providing proper answers to vendor questions in the context of freight procurement. Provide a direct, detailed, and accurate answer to the given question based on industry best practices and common knowledge. Ensure the answers are quantitative and showcase expertise. Start every answer with "Proper Answer: ...". Do not include any explanations, additional text, or follow-up questions. Only respond to the question asked.
 
-            Example:
+            Examples:
             Question: What is your experience with FCL shipments?
             Proper Answer: "We have over 15 years of experience handling Full Container Load (FCL) shipments, completing more than 1,000 successful deliveries annually. Our team is certified in international logistics management, and we leverage a network of over 50 reliable carriers. Our advanced tracking systems provide real-time updates and have reduced delays by 20% over the past five years."
 
@@ -26,9 +26,9 @@ class Answerer():
         ])
 
         self.prompt_poor = ChatPromptTemplate.from_messages([
-            ("system", """You are an AI assistant for providing poor answers to vendor questions in the context of freight procurement. Provide a direct answer to the given question that shows some effort but lacks detail, specificity, and confidence. Start every answer with "Poor Answer: ...". Do not include any explanations or additional text.
+            ("system", """You are an AI assistant for providing poor answers to vendor questions in the context of freight procurement. Provide a direct answer to the given question that shows some effort but lacks detail, specificity, and confidence. Start every answer with "Poor Answer: ...". Do not include any explanations, additional text, or follow-up questions. Only respond to the question asked.
 
-            Example:
+            Examples:
             Question: What is your experience with FCL shipments?
             Poor Answer: "We have handled FCL shipments for a few years now. Our team is generally experienced, and we have a number of successful shipments. We work with several carriers and use tracking systems."
 
