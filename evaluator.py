@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv, find_dotenv
 from langchain_huggingface import HuggingFaceEndpoint
-from langchain_openai import OpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
@@ -40,33 +39,9 @@ class Evaluator:
 
         self.chain = self.prompt | self.llm | self.parser
 
-    def _parse_text(self, text):
-        q_and_a = []
-        lines = text.split('\n')
-        question, answer = None, None
-
-        for line in lines:
-            if line.startswith("Question: "):
-                if question and answer:
-                    q_and_a.append((question, answer))
-                question = line[len("Question: "):]
-                answer = []
-            elif line.startswith("Poor Answer: ") or line.startswith("Answer: "):
-                answer = [line[len("Poor Answer: "):] if line.startswith("Poor Answer: ") else line[len("Answer: "):]]
-            elif line.startswith("Proper Answer: "):
-                answer = [line[len("Proper Answer: "):]]
-            elif answer is not None:
-                answer.append(line.strip())
-
-        if question and answer:
-            q_and_a.append((question, "\n".join(answer)))
-
-        return q_and_a
-
-    def evaluate(self, text):
+    def evaluate(self, qa_dict):
         evaluations = []
-        q_and_a = self._parse_text(text)
-        for question, answer in q_and_a:
+        for question, answer in qa_dict.items():
             score, reasoning = self._evaluate_qa(question, answer)
             evaluations.append({
                 "question": question,
@@ -95,11 +70,18 @@ class Evaluator:
 
 # Usage example
 if __name__ == "__main__":
-    with open('custom_answers.txt', 'r') as file:
-        text = file.read()
+    qa_dict = {
+    "What specific measures do you implement to ensure on-time delivery for FCL shipments?": "We have a three-pronged strategy:\n1. Accurate Planning and Scheduling: Develop precise shipping schedules that account for transit times, port congestion, and potential delays.\n2. Real-Time Tracking and Visibility: Implement GPS and IoT-based tracking systems to monitor the location and status of shipments in real-time.\n3. Contingency Planning: Develop contingency plans for common issues such as port strikes, customs delays, or carrier capacity constraints.",
+    "How many couriers do you process on average daily?": "We process about 1 couriers on average daily. We are confident of being able to service the order.",
+    "What measures do you take to ensure sustainability in FCL shipments?": "None of our ships are older than 5 years. The ships are serviced every six months, as per industry standards. This means our CO2 emissions are less than 50 g/km; Along with this, we have inducted 3 ships which run on electric battery. We are aiming to achieve zero carbon emissions by 2040.",
+    "How many couriers do you process on average daily?": "We process about one couriers on average daily. The highest we have processed in a single day is five couriers. We are confident of being able to service the order.",
+    "How do you handle hazardous materials in FCL shipments?": "We do not handle hazardous materials. A knife is not hazardous for us.",
+    "What measures do you take to ensure sustainability in FCL shipments?": "Sustainability is the least of our concerns. It does not affect us.",
+    "How do you handle customs clearance for FCL shipments?": "It is not our responsibility to handle customs clearance. You will have to contact your insurance service if the customs clearance does not work."
+}
 
     evaluator = Evaluator(HF_TOKEN)
-    evaluations = evaluator.evaluate(text)
+    evaluations = evaluator.evaluate(qa_dict)
 
     total_score = 0
     count = 0
@@ -115,3 +97,4 @@ if __name__ == "__main__":
 
     average_score = total_score / count if count > 0 else 0
     print(f"Average Score: {average_score:.2f} out of 5")
+    print("------")

@@ -59,6 +59,32 @@ class Questioner():
             - Can you provide information on your insurance coverage for FCL shipments? (Insurance)
             - What measures do you take to ensure sustainability in FCL shipments? (Sustainability)
 
+            Input: mode: 'Ocean', delivery_type: 'FCL', existing_questions: ['Can you provide references from previous clients for FCL shipments?', 'What are your standard delivery times for FCL and how do you handle delays?', 'How do you ensure the safety and security of FCL shipments?', 'What are your rates and payment terms for FCL shipments?', 'How do you handle customs clearance for FCL shipments?', 'Do you offer tracking services for FCL shipments?', 'What is your capacity for handling high-volume FCL shipments?', 'How do you handle hazardous materials in FCL shipments?', 'Can you provide information on your insurance coverage for FCL shipments?', 'What measures do you take to ensure sustainability in FCL shipments?']
+            Output:
+            - How many years of experience do you have specifically in handling FCL shipments? (Experience)
+            - Can you provide case studies or examples of successfully handled FCL shipments? (References)
+            - What is the average transit time for FCL shipments to major global destinations? (Delivery Times)
+            - What protocols do you have in place to prevent theft or damage during FCL shipping? (Safety and Security)
+            - Are there any additional fees or surcharges for FCL shipments during peak seasons? (Rates and Payment Terms)
+            - How do you manage and expedite customs clearance issues for FCL shipments? (Customs Clearance)
+            - Can customers track FCL shipments in real-time? (Tracking Services)
+            - How do you scale your services to accommodate large FCL shipment volumes? (Capacity)
+            - What safety measures are taken for hazardous materials in FCL shipping? (Handling Hazardous Materials)
+            - What types of insurance coverage are available for FCL shipments? (Insurance)
+
+            Input: mode: 'Ocean', delivery_type: 'FCL', existing_questions: ['How many years of experience do you have specifically in handling FCL shipments?', 'Can you provide case studies or examples of successfully handled FCL shipments?', 'What is the average transit time for FCL shipments to major global destinations?', 'What protocols do you have in place to prevent theft or damage during FCL shipping?', 'Are there any additional fees or surcharges for FCL shipments during peak seasons?', 'How do you manage and expedite customs clearance issues for FCL shipments?', 'Can customers track FCL shipments in real-time?', 'How do you scale your services to accommodate large FCL shipment volumes?', 'What safety measures are taken for hazardous materials in FCL shipping?', 'What types of insurance coverage are available for FCL shipments?']
+            Output:
+            - What technology do you use to monitor and optimize FCL shipments? (Technology)
+            - How do you ensure compliance with international shipping regulations for FCL shipments? (Compliance)
+            - What is your procedure for handling customer complaints regarding FCL shipments? (Customer Service)
+            - How do you manage the risk of container shortages for FCL shipments? (Capacity)
+            - What are your policies regarding the sustainability and environmental impact of FCL shipments? (Sustainability)
+            - How do you handle emergency situations or disruptions in FCL shipments? (Safety and Security)
+            - Can you provide a detailed breakdown of your FCL shipping costs? (Rates and Payment Terms)
+            - How do you integrate new technology to improve FCL shipment efficiency? (Technology)
+            - What is your process for regular maintenance and inspection of containers used in FCL shipments? (Safety and Security)
+            - How do you ensure effective communication with clients throughout the FCL shipping process? (Customer Service)
+
             Do not include any explanations or additional text in your response.
             """),
             ("human", "mode: '{mode}', delivery_type: '{delivery_type}', existing_questions: {existing_questions}")])
@@ -66,7 +92,10 @@ class Questioner():
         self.chain = self.prompt | self.llm | self.parser
 
     def suggest_questions(self, mode, delivery_type, existing_questions):
-        existing_questions_str = str(existing_questions)
+        default_questions = self.get_default_questions(mode, delivery_type)
+        combined_questions = default_questions + existing_questions
+
+        existing_questions_str = str(combined_questions)
         input_data = {
             "mode": mode,
             "delivery_type": delivery_type,
@@ -81,6 +110,38 @@ class Questioner():
             if '-' in line and not line.startswith(('AI:', 'Suggested:', 'Examples:', 'Input:', 'Output:'))]
 
         return {
-            "existing_questions": existing_questions,
+            "existing_questions": combined_questions,
             "suggested_questions": suggested_questions
         }
+
+    def get_default_questions(self, mode, delivery_type):
+        defaults = {
+            ("Ocean", "FCL"): [
+                "What is your experience with FCL shipments?",
+                "Can you provide references from previous clients for FCL shipments?",
+                "What are your standard delivery times for FCL and how do you handle delays?"
+            ],
+            ("Air", "Cargo"): [
+                "What is your experience with air cargo services?",
+                "Can you provide references from previous clients for air cargo shipments?",
+                "What are your standard delivery times for air cargo and how do you handle delays?"
+            ],
+            ("Road", "FTL"): [
+                "What is your experience with FTL shipments?",
+                "Can you provide references from previous clients for FTL shipments?",
+                "What are your standard delivery times for FTL and how do you handle delays?",
+                "How do you ensure the safety of the movement of all materials?",
+                "What types of goods do you specialize in transporting?",
+                "What qualifications and certifications do your drivers have?",
+                "What types of insurance coverage do you carry for cargo and liability?",
+                "What are your payment terms, and do you offer any discounts for volume or long-term contracts?"
+            ],
+            ("Air", "Courier"): [
+                "Can you provide references from previous clients for Air Courier movements?",
+                "What are your standard delivery times for Courier and how do you handle delays?",
+                "Do you offer a tracking service for air couriers?",
+                "What key performance indicators (KPIs) do you use to measure your service quality?",
+                "Do you provide a dedicated account manager or point of contact?"
+            ]
+        }
+        return defaults.get((mode, delivery_type), [])
